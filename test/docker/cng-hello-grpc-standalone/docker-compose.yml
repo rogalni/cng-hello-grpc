@@ -1,0 +1,13 @@
+# For demo purposes
+services:
+  cng-hello-grpc-server:
+    image: cng-hello-grpc-server
+
+  cng-hello-grpc-client:
+    image: cng-hello-grpc-client
+    environment:
+      - GRPC_SERVER_HOST=cng-hello-grpc-server
+      - GRPC_SERVER_PORT=9000
+    depends_on:
+    - cng-hello-grpc-server
+
