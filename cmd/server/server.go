@@ -29,6 +29,6 @@ type Server struct {
 }
 
 func (s *Server) SayHello(ctx context.Context, in *chat.Message) (*chat.Message, error) {
-	log.Printf("Receive message body from client: %s", in.Body)
-	return &chat.Message{Body: "Hello From the Server!"}, nil
+	log.Printf("Receive message %v with body from client: %s", in.Index, in.Body)
+	return &chat.Message{Body: "Hello From the Server!", Index: in.Index}, nil
 }
