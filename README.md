@@ -22,8 +22,15 @@ cd test/docker/cng-hello-backend-standalone
 docker-compose up
 ```
 
-### Compile grpc
-- In order to use protoc you need to set it up (https://grpc.io/docs/languages/go/quickstart/)
+### Required
+- Setup protoc (https://grpc.io/docs/languages/go/quickstart/)
 ```
-protoc --go_out=plugins=grpc:api\gen .\api\proto\chat.proto
+go install github.com/bufbuild/buf/cmd/buf@v1.0.0
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.27.1
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
 ``` 
+### Generate proto
+```
+cd /api
+buf generate
+```

@@ -13,7 +13,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o main ./cmd/client
+RUN go build -o main ./example/client
 
 WORKDIR /dist
 RUN cp /build/main .

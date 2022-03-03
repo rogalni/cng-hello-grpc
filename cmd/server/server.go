@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 
-	"github.com/rogalni/cng-hello-grpc/api/gen/chat"
+	"github.com/rogalni/cng-hello-grpc/gen/user/v1"
 	"google.golang.org/grpc"
 )
 
@@ -16,19 +17,24 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := Server{}
 	grpcServer := grpc.NewServer()
-	chat.RegisterChatServiceServer(grpcServer, &s)
+	user.RegisterUserServiceServer(grpcServer, &userService{})
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %s", err)
 	}
 }
 
-type Server struct {
+type userService struct {
+	user.UnimplementedUserServiceServer
 }
 
-func (s *Server) SayHello(ctx context.Context, in *chat.Message) (*chat.Message, error) {
-	log.Printf("Receive message %v with body from client: %s", in.Index, in.Body)
-	return &chat.Message{Body: "Hello From the Server!", Index: in.Index}, nil
+func (us *userService) GetUser(ctx context.Context, r *user.GetUserRequest) (*user.GetUserResponse, error) {
+	log.Printf("Received GetUser request %v", r)
+	return &user.GetUserResponse{
+		Id:        r.Id,
+		Username:  fmt.Sprintf("%djohn.doe", r.Id),
+		Firstname: fmt.Sprintf("%djohn", r.Id),
+		Lastname:  fmt.Sprintf("%ddoe", r.Id),
+	}, nil
 }

@@ -6,7 +6,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/rogalni/cng-hello-grpc/api/gen/chat"
+	"github.com/rogalni/cng-hello-grpc/gen/user/v1"
 	"google.golang.org/grpc"
 )
 
@@ -27,27 +27,25 @@ func main() {
 	}
 	defer conn.Close()
 
-	c := chat.NewChatServiceClient(conn)
+	uc := user.NewUserServiceClient(conn)
 	var wg sync.WaitGroup
 	for i := 0; i < 10000; i++ {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			runHello(c, i)
+			runGetUser(uc, i)
 		}(i)
 	}
 	wg.Wait()
 }
 
-func runHello(c chat.ChatServiceClient, i int) {
-
-	response, err := c.SayHello(context.Background(), &chat.Message{
-		Body:  "Hello From Client!",
-		Index: int64(i),
+func runGetUser(uc user.UserServiceClient, i int) {
+	response, err := uc.GetUser(context.Background(), &user.GetUserRequest{
+		Id: int64(i),
 	})
 	if err != nil {
-		log.Fatalf("Error when calling SayHello: %s", err)
+		log.Fatalf("Error when calling GetUser: %s", err)
 	}
-	log.Printf("Response from server for iteration %d: %s", i, response.Body)
+	log.Printf("Response from server %v", response)
 
 }
