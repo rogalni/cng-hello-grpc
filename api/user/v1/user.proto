@@ -12,7 +12,17 @@ message GetUserResponse {
 message GetUserRequest {
   int64 id = 1;
 }
+message GetUsersResponse {
+  int64 id = 1;
+  string username = 2;
+  string firstname = 3;
+  string lastname = 4;
+}
 
+message GetUsersRequest {
+  int64 id = 1;
+}
 service UserService {
   rpc GetUser(GetUserRequest) returns (GetUserResponse) {}
+  rpc GetUsers(stream GetUsersRequest) returns (stream GetUsersResponse) {}
 }

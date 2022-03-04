@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type UserServiceClient interface {
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*GetUserResponse, error)
+	GetUsers(ctx context.Context, opts ...grpc.CallOption) (UserService_GetUsersClient, error)
 }
 
 type userServiceClient struct {
@@ -42,22 +43,55 @@ func (c *userServiceClient) GetUser(ctx context.Context, in *GetUserRequest, opt
 	return out, nil
 }
 
+func (c *userServiceClient) GetUsers(ctx context.Context, opts ...grpc.CallOption) (UserService_GetUsersClient, error) {
+	stream, err := c.cc.NewStream(ctx, &UserService_ServiceDesc.Streams[0], "/user.v1.UserService/GetUsers", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &userServiceGetUsersClient{stream}
+	return x, nil
+}
+
+type UserService_GetUsersClient interface {
+	Send(*GetUsersRequest) error
+	Recv() (*GetUsersResponse, error)
+	grpc.ClientStream
+}
+
+type userServiceGetUsersClient struct {
+	grpc.ClientStream
+}
+
+func (x *userServiceGetUsersClient) Send(m *GetUsersRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *userServiceGetUsersClient) Recv() (*GetUsersResponse, error) {
+	m := new(GetUsersResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // UserServiceServer is the server API for UserService service.
-// All implementations must embed UnimplementedUserServiceServer
+// All implementations should embed UnimplementedUserServiceServer
 // for forward compatibility
 type UserServiceServer interface {
 	GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error)
-	mustEmbedUnimplementedUserServiceServer()
+	GetUsers(UserService_GetUsersServer) error
 }
 
-// UnimplementedUserServiceServer must be embedded to have forward compatible implementations.
+// UnimplementedUserServiceServer should be embedded to have forward compatible implementations.
 type UnimplementedUserServiceServer struct {
 }
 
 func (UnimplementedUserServiceServer) GetUser(context.Context, *GetUserRequest) (*GetUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
 }
-func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
+func (UnimplementedUserServiceServer) GetUsers(UserService_GetUsersServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetUsers not implemented")
+}
 
 // UnsafeUserServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to UserServiceServer will
@@ -88,6 +122,32 @@ func _UserService_GetUser_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetUsers_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(UserServiceServer).GetUsers(&userServiceGetUsersServer{stream})
+}
+
+type UserService_GetUsersServer interface {
+	Send(*GetUsersResponse) error
+	Recv() (*GetUsersRequest, error)
+	grpc.ServerStream
+}
+
+type userServiceGetUsersServer struct {
+	grpc.ServerStream
+}
+
+func (x *userServiceGetUsersServer) Send(m *GetUsersResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *userServiceGetUsersServer) Recv() (*GetUsersRequest, error) {
+	m := new(GetUsersRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -100,6 +160,13 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _UserService_GetUser_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetUsers",
+			Handler:       _UserService_GetUsers_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
+		},
+	},
 	Metadata: "user/v1/user.proto",
 }

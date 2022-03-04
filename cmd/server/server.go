@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 
@@ -26,7 +27,6 @@ func main() {
 }
 
 type userService struct {
-	user.UnimplementedUserServiceServer
 }
 
 func (us *userService) GetUser(ctx context.Context, r *user.GetUserRequest) (*user.GetUserResponse, error) {
@@ -37,4 +37,35 @@ func (us *userService) GetUser(ctx context.Context, r *user.GetUserRequest) (*us
 		Firstname: fmt.Sprintf("%djohn", r.Id),
 		Lastname:  fmt.Sprintf("%ddoe", r.Id),
 	}, nil
+}
+func (us *userService) GetUsers(srv user.UserService_GetUsersServer) error {
+
+	ctx := srv.Context()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		req, err := srv.Recv()
+		if err == io.EOF {
+			log.Println("exit")
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		log.Printf("Received GetUsers stream with id %d", req.Id)
+		resp := user.GetUsersResponse{
+			Id:        req.Id,
+			Username:  fmt.Sprintf("%djohn.doe", req.Id),
+			Firstname: fmt.Sprintf("%djohn", req.Id),
+			Lastname:  fmt.Sprintf("%ddoe", req.Id),
+		}
+		if err := srv.Send(&resp); err != nil {
+			log.Printf("send error %v", err)
+		}
+	}
 }
