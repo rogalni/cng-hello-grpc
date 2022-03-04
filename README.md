@@ -2,6 +2,8 @@
 
 Showcase of gRPC in Go.
 
+#
+
 ## 1. How to run:
 
 ### Local
@@ -34,3 +36,11 @@ go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2.0
 cd /api
 buf generate
 ```
+
+#
+
+## 2. To be done
+### gRPC
+ - Add client side streaming 
+ - Add server side streaming 
+ - Add bidirectional streaming 
